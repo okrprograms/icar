@@ -3,34 +3,41 @@ import React, { useState } from "react";
 import { Avatar, Input } from "@rneui/base";
 import { Button, Icon } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
-import {
-  emailPatternRule,
-  passMaxLenRule,
-  passMinLenRule,
-  passPatternRule,
-  requiredRule,
-} from "../utils/formRules";
+import { emailPatternRule, requiredRule } from "../utils/formRules";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../db";
 import { customToast, errorToast } from "../utils/toastMessages";
 import RNLSpinner from "../components/reactNativeLoadingSpinner";
+import {
+  checkUserSession,
+  startUserSession,
+  getUserSession,
+} from "../utils/session";
 
 const Login = ({ navigation }) => {
   const [hidePass, setHidePass] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
+  getUserSession().then((response) => {
+    if (response) {
+      navigation.replace("Home");
+    }
+  });
+  
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm();
 
+
   const onLogin = (data) => {
     setIsLoading(true);
     signInWithEmailAndPassword(auth, data.email, data.password)
       .then((response) => {
-        customToast("Welcome","Welcome on ICar");
+        customToast("Welcome", "Welcome on ICar");
         setIsLoading(false);
+        startUserSession();
         navigation.replace("Home");
         // if(response.user.emailVerified === true){
 
@@ -124,7 +131,7 @@ const Login = ({ navigation }) => {
           }}
         />
       </View>
-      <RNLSpinner isLoading={isLoading}/>
+      <RNLSpinner isLoading={isLoading} />
     </ScrollView>
   );
 };

@@ -18,9 +18,9 @@ function successToast(message = "", position = "top", type = "success") {
   });
 }
 
-function errorToast(message = "", position = "top", type = "error") {
+function errorToast(message = "", position = "top") {
   Toast.show({
-    type: type,
+    type: "error",
     text1: "Error",
     text2: message,
     position: position,

@@ -32,6 +32,11 @@ const Login = ({ navigation }) => {
         customToast("Welcome","Welcome on ICar");
         setIsLoading(false);
         navigation.replace("Home");
+        // if(response.user.emailVerified === true){
+
+        // }else{
+        //   errorToast("Please verify your email '" + response.user.email + "'");
+        // }
       })
       .catch((error) => {
         errorToast(error.message);

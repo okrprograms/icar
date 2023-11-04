@@ -3,29 +3,66 @@ import React, { useState } from "react";
 import { Avatar, Input } from "@rneui/base";
 import { Button, Icon } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
-import Toast from 'react-native-toast-message';
+import Toast from "react-native-toast-message";
+import Spinner from "react-native-loading-spinner-overlay";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../db";
+
+import {
+  requiredRule,
+  emailPatternRule,
+  passMinLenRule,
+  passMaxLenRule,
+  passPatternRule,
+} from "../utils/formRules";
+import { errorToast, successToast } from "../utils/toastMessages";
+import RNLSpinner from "../components/reactNativeLoadingSpinner";
 
 const Register = () => {
   const [hidePass, setHidePass] = useState(true);
   const [hideConPass, setHideConPass] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const updateHidePass = () => {
-    setHidePass(!hidePass);
-  };
-  const updateHideConPass = () => {
-    setHideConPass(!hideConPass);
-  };
+  //   const [password, setPassword] = useState("");
+  //   const [confirmPassword, setConfirmPassword] = useState("");
+
+  //   const validateConfirmPass = (value) => {
+  // console.log(value);
+  // console.log(password);
+  // if (value !== password) {
+  //   setError("confirmPassword", {
+  //     type: "custom",
+  //     message: "Passwords must match!",
+  //   });
+  // }
+  // else {
+  //   clearErrors("confirmPassword");
+  // }
+
+  //   };
+
   const {
     control,
     handleSubmit,
     formState: { errors },
+    setError,
+    clearErrors,
   } = useForm();
   const onRegister = (data) => {
-    Toast.show({
-        type: 'success',
-        text1: 'Hello',
-        text2: 'This is some something 👋'
-      });
+    setIsLoading(true);
+    if (data.confirmPassword !== data.password) {
+      errorToast("Password does not match!");
+    } else {
+      createUserWithEmailAndPassword(auth, data.email, data.password)
+        .then((response) => {
+          successToast("User registered Successfully!");
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          errorToast(error.message);
+          setIsLoading(false);
+        });
+    }
   };
   return (
     <ScrollView>
@@ -39,10 +76,11 @@ const Register = () => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
+            required: requiredRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="First Name"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -56,10 +94,11 @@ const Register = () => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
+            required: requiredRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Last Name"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -73,14 +112,12 @@ const Register = () => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
-            pattern: {
-              value: /\S+@\S+\.\S+/,
-              message: "Enter value is not the email format!",
-            },
+            required: requiredRule,
+            pattern: emailPatternRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Email"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -94,21 +131,21 @@ const Register = () => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
-            minLength: { value: 6, message: "Minimum 6 characters!" },
-            maxLength: { value: 20, message: "Maximum 20 characters!" },
-            pattern: {
-              value:
-                /(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!*_])[^<>'" \n\t]{8,}$/,
-              message:
-                "Please enter at least one capital case character, one number and one special character!",
-            },
+            required: requiredRule,
+            minLength: passMinLenRule,
+            maxLength: passMaxLenRule,
+            pattern: passPatternRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Password"
               onBlur={onBlur}
-              onChangeText={onChange}
+              //   onChangeText={onChange}
+              onChangeText={(value) => {
+                onChange(value);
+                // setPassword(value);
+              }}
               value={value}
               leftIcon={<Icon name="lock-closed" type="ionicon" />}
               rightIcon={
@@ -130,34 +167,35 @@ const Register = () => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
-            minLength: { value: 6, message: "Minimum 6 characters!" },
-            maxLength: { value: 20, message: "Maximum 20 characters!" },
-            pattern: {
-              value:
-                /(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!*_])[^<>'" \n\t]{8,}$/,
-              message:
-                "Please enter at least one capital case character, one number and one special character!",
-            },
+            required: requiredRule,
+            minLength: passMinLenRule,
+            maxLength: passMaxLenRule,
+            pattern: passPatternRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Confirm Password"
               onBlur={onBlur}
-              onChangeText={onChange}
+              //   onChangeText={onChange}
+              onChangeText={(value) => {
+                onChange(value);
+                // setConfirmPassword(value);
+                // validateConfirmPass(value);
+              }}
               value={value}
               leftIcon={<Icon name="lock-closed" type="ionicon" />}
               rightIcon={
                 <Icon
-                  name={hidePass ? "eye" : "eye-off"}
+                  name={hideConPass ? "eye" : "eye-off"}
                   type="ionicon"
                   onPress={() => {
-                    setHideConPass(!hidePass);
+                    setHideConPass(!hideConPass);
                   }}
                 />
               }
               maxLength={25}
-              secureTextEntry={hidePass}
+              secureTextEntry={hideConPass}
               errorMessage={
                 errors.confirmPassword && errors.confirmPassword.message
               }
@@ -166,11 +204,18 @@ const Register = () => {
           name="confirmPassword"
         />
 
-        <Button title={"Register"} onPress={handleSubmit(onRegister)} />
+        <Button
+          loading={isLoading}
+          disabled={isLoading}
+          title={"Register"}
+          onPress={handleSubmit(onRegister)}
+        />
       </View>
 
       {/* view block for Footer */}
       <View style={styles.footerBlock}></View>
+      {/* <Spinner visible={isLoading} textContent={'Loading...'} textStyle={styles.spinnerTextStyle}/> */}
+      <RNLSpinner isLoading={isLoading}/>
     </ScrollView>
   );
 };
@@ -191,5 +236,8 @@ const styles = StyleSheet.create({
   },
   footerBlock: {
     flex: 1,
+  },
+  spinnerTextStyle: {
+    color: '#FFF'
   },
 });

@@ -3,10 +3,21 @@ import React, { useState } from "react";
 import { Avatar, Input } from "@rneui/base";
 import { Button, Icon } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
-import Toast from 'react-native-toast-message';
+import {
+  emailPatternRule,
+  passMaxLenRule,
+  passMinLenRule,
+  passPatternRule,
+  requiredRule,
+} from "../utils/formRules";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../db";
+import { customToast, errorToast } from "../utils/toastMessages";
+import RNLSpinner from "../components/reactNativeLoadingSpinner";
 
 const Login = ({ navigation }) => {
   const [hidePass, setHidePass] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     control,
@@ -15,11 +26,16 @@ const Login = ({ navigation }) => {
   } = useForm();
 
   const onLogin = (data) => {
-    Toast.show({
-        type: 'success',
-        text1: 'Welcome',
-        text2: 'Hello 👋',
-        position:'bottom'
+    setIsLoading(true);
+    signInWithEmailAndPassword(auth, data.email, data.password)
+      .then((response) => {
+        customToast("Welcome","Welcome on ICar");
+        setIsLoading(false);
+        navigation.replace("Home");
+      })
+      .catch((error) => {
+        errorToast(error.message);
+        setIsLoading(false);
       });
   };
 
@@ -36,13 +52,11 @@ const Login = ({ navigation }) => {
           control={control}
           rules={{
             required: { value: true, message: "This is required!" },
-            pattern:{
-                value:/\S+@\S+\.\S+/,
-                message:"Enter value is not the email format!"
-            }
+            pattern: emailPatternRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Email"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -57,16 +71,14 @@ const Login = ({ navigation }) => {
         <Controller
           control={control}
           rules={{
-            required: { value: true, message: "This is required!" },
-            minLength: { value: 6, message: "Minimum 6 characters!" },
-            maxLength: { value: 20, message: "Maximum 20 characters!" },
-            pattern:{
-                value:/(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+=!*_])[^<>'" \n\t]{8,}$/,
-                message:"Please enter at least one capital case character, one number and one special character!"
-            }
+            required: requiredRule,
+            // minLength: passMinLenRule,
+            // maxLength: passMaxLenRule,
+            // pattern: passPatternRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
+              disabled={isLoading}
               placeholder="Password"
               onBlur={onBlur}
               onChangeText={onChange}
@@ -81,7 +93,6 @@ const Login = ({ navigation }) => {
                   }}
                 />
               }
-              maxLength={25}
               secureTextEntry={hidePass}
               errorMessage={errors.password && errors.password.message}
             />
@@ -89,7 +100,12 @@ const Login = ({ navigation }) => {
           name="password"
         />
 
-        <Button title={"Login"} onPress={handleSubmit(onLogin)} />
+        <Button
+          loading={isLoading}
+          disabled={isLoading}
+          title={"Login"}
+          onPress={handleSubmit(onLogin)}
+        />
       </View>
 
       {/* view block for Footer */}
@@ -103,6 +119,7 @@ const Login = ({ navigation }) => {
           }}
         />
       </View>
+      <RNLSpinner isLoading={isLoading}/>
     </ScrollView>
   );
 };

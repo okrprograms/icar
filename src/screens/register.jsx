@@ -4,7 +4,7 @@ import { Avatar, Input } from "@rneui/base";
 import { Button, Icon } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 import { auth, fireStoreConfig } from "../db";
 
 import {
@@ -55,9 +55,8 @@ const Register = () => {
     } else {
       createUserWithEmailAndPassword(auth, data.email, data.password)
         .then((response) => {
-          storeDataInCollection(data);
-          successToast("User registered Successfully!");
-          setIsLoading(false);
+          const user = response.user;
+          storeDataInCollection(data, user);
         })
         .catch((error) => {
           errorToast(error.message);
@@ -66,13 +65,31 @@ const Register = () => {
     }
   };
 
-  async function storeDataInCollection(data) {
-    const coll = await collection(fireStoreConfig, "users");
-    addDoc(coll, {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      email: data.email,
-    });
+  async function storeDataInCollection(data, user) {
+    try {
+      // const usersColRef = await collection(fireStoreConfig, "users");
+      const usersDoc = await doc(fireStoreConfig, "users", user.uid);
+      // addDoc(usersColRef, {
+      //   firstName: data.firstName,
+      //   lastName: data.lastName,
+      //   email: data.email,
+      //   dob: data.dob,
+      //   gender: data.gender,
+      // });
+      const userForm = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        dob: data.dob,
+        gender: data.gender,
+      };
+      setDoc(usersDoc, userForm);
+      successToast("User registered Successfully!");
+      setIsLoading(false);
+    } catch (error) {
+      errorToast(error.message);
+      setIsLoading(false);
+    }
   }
   return (
     <ScrollView>
@@ -213,7 +230,43 @@ const Register = () => {
           )}
           name="confirmPassword"
         />
-
+        <Controller
+          control={control}
+          rules={{
+            required: requiredRule,
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              disabled={isLoading}
+              placeholder="DOB"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              keyboardType="numeric"
+              leftIcon={<Icon name="calendar" type="ionicon" />}
+              errorMessage={errors.dob && errors.dob.message}
+            />
+          )}
+          name="dob"
+        />
+        <Controller
+          control={control}
+          rules={{
+            required: requiredRule,
+          }}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              disabled={isLoading}
+              placeholder="Gender"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              leftIcon={<Icon name="people" type="ionicon" />}
+              errorMessage={errors.gendor && errors.gendor.message}
+            />
+          )}
+          name="gender"
+        />
         <Button
           loading={isLoading}
           disabled={isLoading}

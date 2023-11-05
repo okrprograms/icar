@@ -3,10 +3,9 @@ import React, { useState } from "react";
 import { Avatar, Input } from "@rneui/base";
 import { Button, Icon } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
-import Toast from "react-native-toast-message";
-import Spinner from "react-native-loading-spinner-overlay";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../db";
+import { collection, addDoc } from "firebase/firestore";
+import { auth, fireStoreConfig } from "../db";
 
 import {
   requiredRule,
@@ -48,13 +47,15 @@ const Register = () => {
     setError,
     clearErrors,
   } = useForm();
-  const onRegister = (data) => {
+  const onRegister = async (data) => {
     setIsLoading(true);
     if (data.confirmPassword !== data.password) {
       errorToast("Password does not match!");
+      setIsLoading(false);
     } else {
       createUserWithEmailAndPassword(auth, data.email, data.password)
         .then((response) => {
+          storeDataInCollection(data);
           successToast("User registered Successfully!");
           setIsLoading(false);
         })
@@ -64,6 +65,15 @@ const Register = () => {
         });
     }
   };
+
+  async function storeDataInCollection(data) {
+    const coll = await collection(fireStoreConfig, "users");
+    addDoc(coll, {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+    });
+  }
   return (
     <ScrollView>
       {/* view block for Logo */}
@@ -215,7 +225,7 @@ const Register = () => {
       {/* view block for Footer */}
       <View style={styles.footerBlock}></View>
       {/* <Spinner visible={isLoading} textContent={'Loading...'} textStyle={styles.spinnerTextStyle}/> */}
-      <RNLSpinner isLoading={isLoading}/>
+      <RNLSpinner isLoading={isLoading} />
     </ScrollView>
   );
 };
@@ -238,6 +248,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   spinnerTextStyle: {
-    color: '#FFF'
+    color: "#FFF",
   },
 });

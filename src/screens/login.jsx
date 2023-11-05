@@ -23,7 +23,7 @@ const Login = ({ navigation }) => {
       navigation.replace("Home");
     }
   });
-  
+
   const {
     control,
     handleSubmit,
@@ -46,8 +46,8 @@ const Login = ({ navigation }) => {
         // }
       })
       .catch((error) => {
-        errorToast(error.message);
         setIsLoading(false);
+        errorToast(error.message);
       });
   };
 

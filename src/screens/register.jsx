@@ -1,11 +1,12 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import React, { useState } from "react";
 import { Avatar, Input } from "@rneui/base";
-import { Button, Icon } from "@rneui/themed";
+import { Button, Icon, Text } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 import { auth, fireStoreConfig } from "../db";
+import { Dropdown } from "react-native-element-dropdown";
 
 import {
   requiredRule,
@@ -16,12 +17,21 @@ import {
 } from "../utils/formRules";
 import { errorToast, successToast } from "../utils/toastMessages";
 import RNLSpinner from "../components/reactNativeLoadingSpinner";
+import { RNCalendar } from "../components/calender";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
+const data = [
+  { label: "Female", value: "female" },
+  { label: "Male", value: "male" },
+];
 const Register = () => {
   const [hidePass, setHidePass] = useState(true);
   const [hideConPass, setHideConPass] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-
+  const [value, setValue] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
+  const [dob, setDob] = useState(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   //   const [password, setPassword] = useState("");
   //   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -65,6 +75,17 @@ const Register = () => {
     }
   };
 
+  const renderLabel = () => {
+    if (value || isFocus) {
+      return (
+        <Text style={[styles.label, isFocus && { color: "blue" }]}>
+          Dropdown label
+        </Text>
+      );
+    }
+    return null;
+  };
+
   async function storeDataInCollection(data, user) {
     try {
       // const usersColRef = await collection(fireStoreConfig, "users");
@@ -91,6 +112,13 @@ const Register = () => {
       setIsLoading(false);
     }
   }
+  const handleCalendarOpen = () => {
+    setIsCalendarOpen(!isCalendarOpen);
+  };
+  const handleCalendarDate = (date) => {
+    setDob(date.dateString);
+    handleCalendarOpen();
+  };
   return (
     <ScrollView>
       {/* view block for Logo */}
@@ -230,7 +258,16 @@ const Register = () => {
           )}
           name="confirmPassword"
         />
-        <Controller
+        <TouchableOpacity onPress={handleCalendarOpen}>
+          {/* <Icon name="calendar" type="ionicon" /> */}
+          <Input
+            disabled
+            placeholder="DOB"
+            leftIcon={<Icon name="calendar" type="ionicon" />}
+            value={dob}
+          />
+        </TouchableOpacity>
+        {/* <Controller
           control={control}
           rules={{
             required: requiredRule,
@@ -248,25 +285,61 @@ const Register = () => {
             />
           )}
           name="dob"
-        />
+        /> */}
+        {/* {renderLabel()} */}
         <Controller
           control={control}
           rules={{
             required: requiredRule,
           }}
           render={({ field: { onChange, onBlur, value } }) => (
-            <Input
-              disabled={isLoading}
-              placeholder="Gender"
-              onBlur={onBlur}
-              onChangeText={onChange}
+            <Dropdown
+              // style={[styles.dropdown, isFocus && { borderColor: "blue" }]}
+              style={{
+                borderBottomWidth: 0.4,
+                marginHorizontal: 10,
+                marginVertical: 5,
+              }}
+              // placeholderStyle={{ color: "red" }}
+              // selectedTextStyle={styles.selectedTextStyle}
+              // inputSearchStyle={styles.inputSearchStyle}
+              // iconStyle={styles.iconStyle}
+              data={data}
+              search={false}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder={!isFocus ? "Select Gender" : "..."}
+              // searchPlaceholder="Search..."
               value={value}
-              leftIcon={<Icon name="people" type="ionicon" />}
-              errorMessage={errors.gendor && errors.gendor.message}
+              onFocus={() => setIsFocus(true)}
+              onBlur={() => {
+                setIsFocus(false);
+                onBlur;
+              }}
+              onChange={(item) => {
+                setValue(item.value);
+                setIsFocus(false);
+                onChange(item.value);
+              }}
+              renderLeftIcon={() => (
+                <Icon
+                  name="people"
+                  type="ionicon"
+                  style={{ marginRight: 10 }}
+                />
+              )}
+              // errorMessage={errors.gender && errors.gender.message}
             />
           )}
           name="gender"
         />
+        {errors.gender && (
+          <Text style={{ fontSize: 13, marginHorizontal: 15, color: "red" }}>
+            {" "}
+            {errors.gender.message}
+          </Text>
+        )}
         <Button
           loading={isLoading}
           disabled={isLoading}
@@ -279,6 +352,10 @@ const Register = () => {
       <View style={styles.footerBlock}></View>
       {/* <Spinner visible={isLoading} textContent={'Loading...'} textStyle={styles.spinnerTextStyle}/> */}
       <RNLSpinner isLoading={isLoading} />
+      <RNCalendar
+        show={isCalendarOpen}
+        handleSelectedDate={(date) => handleCalendarDate(date)}
+      />
     </ScrollView>
   );
 };

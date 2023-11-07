@@ -115,7 +115,7 @@ const Login = ({ navigation }) => {
         <Button
           loading={isLoading}
           disabled={isLoading}
-          title={"Login"}
+          title={"Login Me"}
           onPress={handleSubmit(onLogin)}
         />
       </View>

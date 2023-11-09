@@ -7,7 +7,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, setDoc, doc } from "firebase/firestore";
 import { auth, fireStoreConfig } from "../db";
 import { Dropdown } from "react-native-element-dropdown";
-
+import DatePicker from "react-native-date-picker";
 import {
   requiredRule,
   emailPatternRule,
@@ -19,6 +19,8 @@ import { errorToast, successToast } from "../utils/toastMessages";
 import RNLSpinner from "../components/reactNativeLoadingSpinner";
 import { RNCalendar } from "../components/calender";
 import { TouchableOpacity } from "react-native-gesture-handler";
+import { RNDatePicker } from "../components/datepicker";
+import moment from 'moment';
 
 const data = [
   { label: "Female", value: "female" },
@@ -30,7 +32,7 @@ const Register = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
-  const [dob, setDob] = useState(null);
+  const [dob, setDob] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   //   const [password, setPassword] = useState("");
   //   const [confirmPassword, setConfirmPassword] = useState("");
@@ -116,7 +118,9 @@ const Register = () => {
     setIsCalendarOpen(!isCalendarOpen);
   };
   const handleCalendarDate = (date) => {
-    setDob(date.dateString);
+    console.log(date);
+    // setDob(date.dateString);
+    setDob(date);
     handleCalendarOpen();
   };
   return (
@@ -264,7 +268,7 @@ const Register = () => {
             disabled
             placeholder="DOB"
             leftIcon={<Icon name="calendar" type="ionicon" />}
-            value={dob}
+            value={moment(dob).format('YYYY-MM-DD')}
           />
         </TouchableOpacity>
         {/* <Controller
@@ -352,9 +356,15 @@ const Register = () => {
       <View style={styles.footerBlock}></View>
       {/* <Spinner visible={isLoading} textContent={'Loading...'} textStyle={styles.spinnerTextStyle}/> */}
       <RNLSpinner isLoading={isLoading} />
-      <RNCalendar
+      {/* <RNCalendar
         show={isCalendarOpen}
         handleSelectedDate={(date) => handleCalendarDate(date)}
+      /> */}
+      <RNDatePicker
+        show={isCalendarOpen}
+        handleSelectedDate={(date) => handleCalendarDate(date)}
+        handlePickerOpen={handleCalendarOpen}
+        dob={dob}
       />
     </ScrollView>
   );

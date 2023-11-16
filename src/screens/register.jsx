@@ -29,7 +29,7 @@ const data = [
   { label: "Female", value: "female" },
   { label: "Male", value: "male" },
 ];
-const Register = () => {
+const Register = ({ navigation }) => {
   const [hidePass, setHidePass] = useState(true);
   const [hideConPass, setHideConPass] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -130,6 +130,7 @@ const Register = () => {
       };
       await setDoc(usersDoc, userForm);
       successToast("User registered Successfully!");
+      navigation.navigate("Login");
       setIsLoading(false);
     } catch (error) {
       console.log(error.message);

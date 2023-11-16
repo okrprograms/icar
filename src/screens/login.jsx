@@ -12,6 +12,7 @@ import {
   checkUserSession,
   startUserSession,
   getUserSession,
+  saveUerUid,
 } from "../utils/session";
 
 const Login = ({ navigation }) => {
@@ -38,6 +39,7 @@ const Login = ({ navigation }) => {
         customToast("Welcome", "Welcome on ICar");
         setIsLoading(false);
         startUserSession();
+        saveUerUid(response.user.uid);
         navigation.replace("Home");
         // if(response.user.emailVerified === true){
 

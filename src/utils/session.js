@@ -8,7 +8,20 @@ async function startUserSession(key = "isLoggedIn", value = "true") {
 async function stopUserSession(key = "isLoggedIn", value = "false") {
   await SecureStore.setItemAsync(key, value);
 }
-
+async function saveUerUid(Uid) {
+  await SecureStore.setItemAsync("uid", Uid);
+}
+async function getUserUid() {
+  try {
+    const uid = await SecureStore.getItemAsync("uid");
+    return uid;
+  } catch (error) {
+    errorToast(error.message);
+  }
+}
+async function removeUerUid() {
+  await SecureStore.setItemAsync("uid", "");
+}
 function checkUserSession() {
   var isLoggedIn = false;
   SecureStore.getItemAsync("isLoggedIn")
@@ -25,25 +38,6 @@ function checkUserSession() {
   return isLoggedIn;
 }
 
-// async function checkUserSession() {
-//     var isLoggedIn = false;
-//     await SecureStore.getItemAsync("isLoggedIn")
-//       .then((response) => {
-//         if (response === "true") {
-//           isLoggedIn = true;
-//           // console.log(isLoggedIn);
-//         } else {
-//           isLoggedIn = false;
-//           // console.log(isLoggedIn);
-//         }
-//       })
-//       .catch((error) => {
-//         errorToast(error.message);
-//       });
-//       // console.log(isLoggedIn);
-//     return isLoggedIn;
-//   }
-
 async function getUserSession() {
   try {
     var response = await SecureStore.getItemAsync("isLoggedIn");
@@ -57,4 +51,12 @@ async function getUserSession() {
   }
 }
 
-export { startUserSession, stopUserSession, checkUserSession, getUserSession };
+export {
+  startUserSession,
+  stopUserSession,
+  checkUserSession,
+  getUserSession,
+  saveUerUid,
+  getUserUid,
+  removeUerUid,
+};

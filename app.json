@@ -32,6 +32,14 @@
         "projectId": "76dc62d8-b37e-4d71-a539-9e5d6abec4d4"
       }
     },
-    "owner": "okasharafique"
+    "owner": "okasharafique",
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
+      ]
+    ]
   }
 }

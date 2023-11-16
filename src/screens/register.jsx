@@ -20,7 +20,9 @@ import RNLSpinner from "../components/reactNativeLoadingSpinner";
 import { RNCalendar } from "../components/calender";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { RNDatePicker } from "../components/datepicker";
-import moment from 'moment';
+import moment from "moment";
+import { pickImage } from "../utils/common";
+import MediaPicker from "../components/mediaPicker";
 
 const data = [
   { label: "Female", value: "female" },
@@ -34,6 +36,8 @@ const Register = () => {
   const [isFocus, setIsFocus] = useState(false);
   const [dob, setDob] = useState(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [avatarImageSource, setAvatarImageSource] = useState(null);
   //   const [password, setPassword] = useState("");
   //   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -99,17 +103,19 @@ const Register = () => {
       //   dob: data.dob,
       //   gender: data.gender,
       // });
+      console.log(data.dob);
       const userForm = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
-        dob: data.dob,
+        dob: dob,
         gender: data.gender,
       };
       setDoc(usersDoc, userForm);
       successToast("User registered Successfully!");
       setIsLoading(false);
     } catch (error) {
+      console.log(error.message);
       errorToast(error.message);
       setIsLoading(false);
     }
@@ -123,11 +129,35 @@ const Register = () => {
     setDob(date);
     handleCalendarOpen();
   };
+
+  const onAvatarPressed = () => {
+    // const response = await pickImage();
+    // console.log(response);
+    setShowMediaPicker(true);
+  };
+  const onPictureSelectedChange = (imagePath) => {
+    setAvatarImageSource(imagePath);
+  };
   return (
     <ScrollView>
       {/* view block for Logo */}
       <View style={styles.logoBlock}>
-        <Avatar size={"xlarge"} source={require("../../assets/car-icon.png")} />
+        {avatarImageSource ? (
+          <Avatar
+            size={"xlarge"}
+            onPress={onAvatarPressed}
+            // source={require("../../assets/car-icon.png")}
+            source={{ uri: avatarImageSource }}
+            rounded
+          />
+        ) : (
+          <Avatar
+            size={"large"}
+            onPress={onAvatarPressed}
+            source={require("../../assets/car-icon.png")}
+            rounded
+          />
+        )}
       </View>
 
       {/* view block for Form */}
@@ -268,7 +298,7 @@ const Register = () => {
             disabled
             placeholder="DOB"
             leftIcon={<Icon name="calendar" type="ionicon" />}
-            value={moment(dob).format('YYYY-MM-DD')}
+            value={moment(dob).format("YYYY-MM-DD")}
           />
         </TouchableOpacity>
         {/* <Controller
@@ -365,6 +395,11 @@ const Register = () => {
         handleSelectedDate={(date) => handleCalendarDate(date)}
         handlePickerOpen={handleCalendarOpen}
         dob={dob}
+      />
+      <MediaPicker
+        show={showMediaPicker}
+        handleClose={() => setShowMediaPicker(!showMediaPicker)}
+        onPictureSelected={(imagePath) => onPictureSelectedChange(imagePath)}
       />
     </ScrollView>
   );

@@ -5,7 +5,8 @@ import { Button, Icon, Text } from "@rneui/themed";
 import { useForm, Controller } from "react-hook-form";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { collection, addDoc, setDoc, doc } from "firebase/firestore";
-import { auth, fireStoreConfig } from "../db";
+import { auth, fireStoreConfig, storageConfig } from "../db";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Dropdown } from "react-native-element-dropdown";
 import DatePicker from "react-native-date-picker";
 import {
@@ -21,7 +22,7 @@ import { RNCalendar } from "../components/calender";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { RNDatePicker } from "../components/datepicker";
 import moment from "moment";
-import { pickImage } from "../utils/common";
+import { generateImgNameWithUid, generateUniqueImgName, imgToBlob, pickImage } from "../utils/common";
 import MediaPicker from "../components/mediaPicker";
 
 const data = [
@@ -103,15 +104,31 @@ const Register = () => {
       //   dob: data.dob,
       //   gender: data.gender,
       // });
-      console.log(data.dob);
+
+      //convert img to blob
+      const avatarBlob = await imgToBlob(avatarImageSource);
+
+      // image name and reference to fireStorage
+      // const imgName = data.firstName + "_" + user.uid + ".png";
+      // const imgName = generateUniqueImgName();
+      const imgName = generateImgNameWithUid(user.uid);
+      const avatarStorageRef = ref(storageConfig, imgName);
+
+      //uploadImage
+      const resUpload = await uploadBytes(avatarStorageRef, avatarBlob);
+
+      //get its downloadbale url
+      const uploadedAvatarUrl = await getDownloadURL(avatarStorageRef);
+
       const userForm = {
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         dob: dob,
         gender: data.gender,
+        avatarUrl: uploadedAvatarUrl,
       };
-      setDoc(usersDoc, userForm);
+      await setDoc(usersDoc, userForm);
       successToast("User registered Successfully!");
       setIsLoading(false);
     } catch (error) {
@@ -137,6 +154,7 @@ const Register = () => {
   };
   const onPictureSelectedChange = (imagePath) => {
     setAvatarImageSource(imagePath);
+    setShowMediaPicker(!showMediaPicker);
   };
   return (
     <ScrollView>
@@ -152,7 +170,7 @@ const Register = () => {
           />
         ) : (
           <Avatar
-            size={"large"}
+            size={"xlarge"}
             onPress={onAvatarPressed}
             source={require("../../assets/car-icon.png")}
             rounded

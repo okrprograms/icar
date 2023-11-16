@@ -21,13 +21,14 @@ const MediaPicker = ({ show = false, handleClose, onPictureSelected }) => {
       quality: 1,
     });
 
-    // console.log(result);
-
     if (!result.canceled) {
       //when user select the picture, then callback onPictureSelected with selected image path
-      //   setImage(result.assets[0].uri);
-      //   console.log(result.assets[0].uri)
-      handleClose();
+      onPictureSelected(result.assets[0].uri);
+    }
+  };
+  const pickFromCamera = async () => {
+    const result = await ImagePicker.launchCameraAsync();
+    if (result.canceled === false) {
       onPictureSelected(result.assets[0].uri);
     }
   };
@@ -36,7 +37,12 @@ const MediaPicker = ({ show = false, handleClose, onPictureSelected }) => {
       <View style={styles.container}>
         <Card>
           <View style={styles.iconCons}>
-            <Icon name="camera" size={100} type="ionicon" onPress={pickImage} />
+            <Icon
+              name="camera"
+              size={100}
+              type="ionicon"
+              onPress={pickFromCamera}
+            />
             <Icon name="image" size={100} type="ionicon" onPress={pickImage} />
           </View>
           <Button onPress={handleClose} title="Cancel" color={"brown"} />

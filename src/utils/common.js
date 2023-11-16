@@ -1,20 +1,45 @@
-import * as ImagePicker from "expo-image-picker";
-
-const pickImage = async () => {
-  // No permissions request is necessary for launching the image library
-  let result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,
-    allowsEditing: true,
-    aspect: [4, 3],
-    quality: 1,
-  });
-
-  console.log(result);
-
-  if (!result.canceled) {
-    // setImage(result.assets[0].uri);
-    return result.assets[0].uri;
+/*** a func to convert any file to be uplaodable  */
+const imgToBlob = async (uri) => {
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", uri, true);
+    xhr.responseType = "blob";
+    const blobPromise = new Promise((resolve, reject) => {
+      xhr.onload = () => {
+        const blob = xhr.response;
+        resolve(blob);
+      };
+      xhr.onerror = () => {
+        reject(new Error("Failed to load image"));
+      };
+    });
+    xhr.send();
+    const blob = await blobPromise;
+    return blob;
+  } catch (error) {
+    console.error(error);
   }
 };
 
-export { pickImage };
+const generateUniqueImgName = () => {
+  const prefix = "img_profile_";
+  const postfix = ".png";
+  const randomNumber = Math.random(0, 1);
+
+  const name = prefix + randomNumber + postfix;
+
+  return name;
+};
+const generateImgNameWithUid = (uid) => {
+  const prefix = "img_profile_";
+  const postfix = ".png";
+  const randomNumber = Math.random(0, 1);
+  if (uid == null || uid == "") {
+    uid = randomNumber;
+  }
+  const name = prefix + uid + postfix;
+
+  return name;
+};
+
+export { imgToBlob, generateImgNameWithUid, generateUniqueImgName };
